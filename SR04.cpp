@@ -11,8 +11,8 @@ SR04::SR04(int echoPin, int triggerPin) {
 }
 
 
-long SR04::Distance() {
-    long d = 0;
+double SR04::Distance() {
+    double d = 0;
     _duration = 0;
     digitalWrite(_triggerPin, LOW);
     delayMicroseconds(2);
@@ -26,8 +26,8 @@ long SR04::Distance() {
     return d;
 }
 
-long SR04::DistanceAvg(int wait, int count) {
-    long min, max, avg, d;
+double SR04::DistanceAvg(int wait, int count) {
+    double min, max, avg, d;
     min = 999;
     max = 0;
     avg = d = 0;
@@ -65,12 +65,12 @@ void SR04::Ping() {
     _distance = Distance();
 }
 
-long SR04::getDistance() {
+double SR04::getDistance() {
     return _distance;
 }
 
-long SR04::MicrosecondsToCentimeter(long duration) {
-    float d = (duration * 100) / 5882.0;
+double SR04::MicrosecondsToCentimeter(long duration) {
+    double d = (duration * 100) / 5882.0;
     if (d == 0 || d > MAX_RANGE) d = MAX_RANGE;
     return d;
 }

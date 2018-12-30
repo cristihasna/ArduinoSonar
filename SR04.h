@@ -21,7 +21,7 @@ public:
 	/*
 	* Do a measurment for this sensor. Return distance as long in centimenter
 	*/
-	long Distance();
+	double Distance();
 	
 	/**
 	* Do count measurents and calculate the average. 
@@ -30,7 +30,7 @@ public:
 	* count - number of measurements, default DEFAULT_PINGS
 	* return long distance in centimeter
 	*/
-	long DistanceAvg(int wait=DEFAULT_DELAY, int count=DEFAULT_PINGS);
+	double DistanceAvg(int wait=DEFAULT_DELAY, int count=DEFAULT_PINGS);
 	
 	/**
 	* Do only a ping. Get result with methode getDistance()
@@ -40,13 +40,13 @@ public:
 	/**
 	* return latest distance in cm. Methode Ping() should be called before
 	*/
-	long getDistance();
+	double getDistance();
 	
 
 private:
-	long MicrosecondsToCentimeter(long duration);
+	double MicrosecondsToCentimeter(long duration);
 	
-	long _currentDistance;
+	double _currentDistance;
 	int _echoPin, _triggerPin;
 	long _duration, _distance;
 	bool _autoMode;

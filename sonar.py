@@ -21,6 +21,9 @@ master = None
 canvas = None
 rot_button = None
 buzzer_button = None
+current_angle = None
+current_target = None
+current_distance = None
 
 class Canvas(tk.Canvas):
     def __init__(self, master, click_ev_callback):
@@ -119,6 +122,7 @@ class Canvas(tk.Canvas):
 class Button(tk.Button):
     def __init__(self, master, text, state, callback):
         self.callback = callback
+        self.name = text
         tk.Button.__init__(self, master, text=text, bd=0, padx=10, pady=10, width=30, anchor=tk.W)
         self.master = master
         self.bind("<Button 1>", self.handle_click)
@@ -127,10 +131,12 @@ class Button(tk.Button):
     
     def set_state(self, state):
         self.state = state
-        if state == 1:
+        if state == 1 or state == 2:
+            self['text'] = self.name + ': Pause'
             self['bg'] = button_bg_active
             self['fg'] = button_fg_active
         else:
+            self['text'] = self.name + ': Continue'
             self['bg'] = button_bg
             self['fg'] = button_fg
     
@@ -139,6 +145,15 @@ class Button(tk.Button):
 
     def get_state(self):
         return self.state
+
+class Label(tk.Label):
+    def __init__(self, master, text, unit):
+        tk.Label.__init__(self, master, text=text, width=30, anchor=tk.W)
+        self.unit = unit
+        self.name = text
+    
+    def set_value(self, value):
+        self['text'] = '{}: {} {}'.format(self.name, str(value), self.unit)
 
 def find_arduino_port():
     ports = list(serial.tools.list_ports.comports())
@@ -152,18 +167,16 @@ def clicked_canvas(deg):
     print("new target: {}".format(string))
     connection.write(string)
 
-def handle_rotation(rot_button):
+def handle_rotation():
     if rot_button.get_state() == 0 or rot_button.get_state() == 2:
         # continue if paused or not rotating
-        rot_button['text'] = 'Pause'
-        rot_button.set_state(1)
         connection.write(b'C')
+        print("wrinting C")
     else:
-        rot_button['text'] = 'Continue'
-        rot_button.set_state(2)
         connection.write(b'P')
+        print("writing P")
     
-def handle_buzzer(buzzer_button):
+def handle_buzzer():
     if buzzer_button.get_state() == 1 or buzzer_button.get_state() == 2:
         # disable buzzer if enabled
         buzzer_button['text'] = 'Enable Buzzer'
@@ -179,11 +192,22 @@ def loop():
     if connection.in_waiting:
         line:str = connection.readline().decode()
         values = line.rstrip().split('|')
-        print(values)
-        if len(values) == 3:
-            canvas.draw_pointer(float(values[0]))
-            canvas.draw_target(float(values[2]))
-        
+        try:
+            print(values)
+            if len(values) == 4:
+                angle = float(values[0])
+                distance = float(values[1])
+                target = float(values[2])
+                rotating = int(values[3])
+                canvas.draw_pointer(angle)
+                canvas.draw_target(target)
+                rot_button.set_state(rotating)
+                current_angle.set_value(angle)
+                current_target.set_value(target)
+                current_distance.set_value(distance)
+
+        except ValueError:
+            pass
     master.after(1, loop)
 
 if __name__ == "__main__":
@@ -209,17 +233,21 @@ if __name__ == "__main__":
     right_frame = tk.Frame(master, padx=20, pady=20)
     right_frame.pack(side=tk.RIGHT, anchor=tk.NW)
 
-    rot_button = Button(right_frame, text='Pause', state=1, callback=lambda: handle_rotation(rot_button))
+    rot_button = Button(right_frame, text='Rotation', state=1, callback=handle_rotation)
     rot_button.grid(row=0, column=0, padx=10, pady=10)
 
-    buzzer_button = Button(right_frame, text='Disable buzzer', state=1, callback=lambda: handle_buzzer(buzzer_button))
+    buzzer_button = Button(right_frame, text='Buzzer', state=1, callback=handle_buzzer)
     buzzer_button.grid(row=1, column=0, padx=10, pady=10)
 
-    current_angle = tk.Label(right_frame, text='Current angle: 0 deg', width=30, anchor=tk.W)
+    current_angle = Label(right_frame, text='Angle', unit='deg')
     current_angle.grid(row=2, column=0, padx=10, pady=10)
 
-    current_target = tk.Label(right_frame, text=' ', width=30, anchor=tk.W)
-    current_angle.grid(row=3, column=0, padx=10, pady=10)
+    current_target = Label(right_frame, text='Target', unit='deg')
+    current_target.grid(row=3, column=0, padx=10, pady=10)
+
+    current_distance = Label(right_frame, text='Distance', unit='cm')
+    current_distance.grid(row=4, column=0, padx=10, pady=10)
+    
     master.after(1, loop)
     tk.mainloop()
     loop()
