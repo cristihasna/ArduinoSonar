@@ -1,3 +1,4 @@
+// small char* library developed on a previous laboratory
 
 unsigned int strlen(char* string) {
 	if (string == nullptr) {

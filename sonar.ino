@@ -16,12 +16,12 @@
 #define TIMER 3500
 #define BUZZ_TIME 50
 
-#define DEG_PER_STEP 0.087890625 //degrees per step
-#define STEPS_PER_REV 4096		 //number of steps for a full revolution of 28BYJ-48 stepper
+#define DEG_PER_STEP 0.17578125 //degrees per step
+#define STEPS_PER_REV 2048		 //number of steps for a full revolution of 28BYJ-48 stepper
 #define ROT_SPEED 1000			 //120 rpm
 
-int buzzer = 1;
-int rotating = 1;
+int buzzer = 2;
+int rotating = 0;
 int prevRotating = 1;
 unsigned long last_time = 0;
 
@@ -30,14 +30,14 @@ float angle;
 float target;
 
 SR04 sr04(ECHO_PIN, TRIG_PIN);
-AccelStepper stepper(AccelStepper::HALF4WIRE, MOTOR_PIN_1, MOTOR_PIN_3, MOTOR_PIN_2, MOTOR_PIN_4);
+AccelStepper stepper(AccelStepper::FULL4WIRE, MOTOR_PIN_1, MOTOR_PIN_3, MOTOR_PIN_2, MOTOR_PIN_4);
 
 void rotateTo(float deg)
 {
 	float target = deg / DEG_PER_STEP;
 	stepper.setSpeed(ROT_SPEED);
 	stepper.setAcceleration(ROT_SPEED);
-	stepper.moveTo(target);
+	stepper.moveTo(-target);
 	rotating = 2;
 	buzzer = buzzer == 2 ? 1 : 0;
 }
@@ -109,19 +109,23 @@ void processCommand()
 
 void sendValues()
 {
+	stepper.run();
 	dist = sr04.Distance();
+	stepper.run();
 	int pos = stepper.currentPosition();
 	angle = pos * DEG_PER_STEP;
 	target = stepper.targetPosition() * DEG_PER_STEP;
 	stepper.run();
-	Serial.print(angle);
+	Serial.print(-angle);
 	Serial.print("|");
 	Serial.print(dist);
 	stepper.run();
 	Serial.print("|");
-	Serial.print(target);
+	Serial.print(-target);
 	Serial.print("|");
-	Serial.println(rotating);
+	Serial.print(rotating);
+	Serial.print("|");
+	Serial.println(buzzer);
 	stepper.run();
 }
 
@@ -130,7 +134,7 @@ void setup()
 	Serial.begin(9600);
 	stepper.setSpeed(ROT_SPEED);
 	stepper.setAcceleration(ROT_SPEED);
-	stepper.moveTo(STEPS_PER_REV);
+	stepper.moveTo(-STEPS_PER_REV);
 }
 
 void loop()
@@ -161,7 +165,7 @@ void loop()
 
 				stepper.setSpeed(ROT_SPEED);
 				stepper.setAcceleration(ROT_SPEED);
-				stepper.moveTo(STEPS_PER_REV);
+				stepper.moveTo(-STEPS_PER_REV);
 			}
 			else
 			{

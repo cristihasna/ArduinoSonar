@@ -19,28 +19,16 @@ public:
 	SR04(int echoPin, int triggerPin);
 
 	/*
-	* Do a measurment for this sensor. Return distance as long in centimenter
+	* Return distance in cm (double)
 	*/
 	double Distance();
 	
 	/**
-	* Do count measurents and calculate the average. 
-	* To avoid defilement from ow/high peaks, min/max values are substracted from the average
-	* wait - delay between measurements, default = DEFAULT_DELAY/ms
-	* count - number of measurements, default DEFAULT_PINGS
-	* return long distance in centimeter
+	* Do an average of count Distance measurements
+	* remove min and max values for noise reduction
 	*/
 	double DistanceAvg(int wait=DEFAULT_DELAY, int count=DEFAULT_PINGS);
 	
-	/**
-	* Do only a ping. Get result with methode getDistance()
-	*/
-	void Ping() ;
-	
-	/**
-	* return latest distance in cm. Methode Ping() should be called before
-	*/
-	double getDistance();
 	
 
 private:

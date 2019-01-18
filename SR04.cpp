@@ -6,8 +6,6 @@ SR04::SR04(int echoPin, int triggerPin) {
     _triggerPin = triggerPin;
     pinMode(_echoPin, INPUT);
     pinMode(_triggerPin, OUTPUT);
-    _autoMode = false;
-    _distance = 999;
 }
 
 
@@ -59,14 +57,6 @@ double SR04::DistanceAvg(int wait, int count) {
     // calculate average
     avg /= count;
     return avg;
-}
-
-void SR04::Ping() {
-    _distance = Distance();
-}
-
-double SR04::getDistance() {
-    return _distance;
 }
 
 double SR04::MicrosecondsToCentimeter(long duration) {
