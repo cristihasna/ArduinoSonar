@@ -25,6 +25,8 @@ int rotating = 0;
 int prevRotating = 1;
 unsigned long last_time = 0;
 
+int timer = 3000;
+
 double dist;
 float angle;
 float target;
@@ -111,6 +113,7 @@ void sendValues()
 {
 	stepper.run();
 	dist = sr04.Distance();
+	timer = dist * 15;
 	stepper.run();
 	int pos = stepper.currentPosition();
 	angle = pos * DEG_PER_STEP;
@@ -143,7 +146,7 @@ void loop()
 		processCommand();
 
 	unsigned long new_time = millis();
-	if (buzzer == 1 && new_time - last_time > TIMER)
+	if (buzzer == 1 && new_time - last_time > timer)
 	{
 		last_time = new_time;
 		noTone(BUZZER);
